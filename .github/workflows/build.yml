@@ -40,7 +40,7 @@ jobs:
         fi
         
     - name: Build GSI
-      uses: ponces/treble_build_aosp@android-15.0
+      uses: ponces/treble_build_aosp@v2
       with:
         android_version: ${{ github.event.inputs.android_version }}
         gsi_variant: ${{ github.event.inputs.gsi_variant }}
