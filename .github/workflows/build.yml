@@ -17,10 +17,12 @@ on:
         type: choice
         options:
         - tdgsi_arm64_ab
+        - tdgsi_arm64_a
+        - tdgsi_arm64_ab_vndklite
       include_gapps:
         description: 'Include Core GApps? Play Store'
         required: true
-        default: 'yes'  # <-- DEFAULT YES
+        default: 'yes'
         type: choice
         options:
         - yes  # Core GApps
@@ -29,25 +31,23 @@ on:
 jobs:
   build:
     runs-on: ubuntu-22.04
+    permissions:
+      contents: write
     steps:
-    - name: Set GApps
-      id: gapps
-      run: |
-        if [ "${{ github.event.inputs.include_gapps }}" == "yes" ]; then
-          echo "variant=core" >> $GITHUB_OUTPUT
-        else
-          echo "variant=none" >> $GITHUB_OUTPUT
-        fi
-        
+    - name: Checkout
+      uses: actions/checkout@v4
+
     - name: Build GSI
-      uses: ponces/treble_build_aosp@main
+      uses: yshalsager/aosp_gsi_builder@main
       with:
+        os: 'AOSP'
         android_version: ${{ github.event.inputs.android_version }}
-        gsi_variant: ${{ github.event.inputs.gsi_variant }}
-        gapps_variant: ${{ steps.gapps.outputs.variant }}
+        variant: ${{ github.event.inputs.gsi_variant }}
+        gapps: ${{ github.event.inputs.include_gapps }}
+        root: 'ksu'  # KernelSU, ganti 'magisk' kalo mau Magisk
         
     - name: Upload GSI
       uses: actions/upload-artifact@v4
       with:
-        name: Varius-OS-15-${{ steps.gapps.outputs.variant }}-${{ github.run_number }}
+        name: Varius-OS-15-${{ github.event.inputs.include_gapps }}-${{ github.run_number }}
         path: release/
