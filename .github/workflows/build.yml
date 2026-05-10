@@ -17,24 +17,37 @@ on:
         type: choice
         options:
         - tdgsi_arm64_ab
-        - tdgsi_arm64_a
-        - tdgsi_arm_ab
+      include_gapps:
+        description: 'Include Core GApps? Play Store'
+        required: true
+        default: 'yes'  # <-- DEFAULT YES
+        type: choice
+        options:
+        - yes  # Core GApps
+        - no   # Vanilla
 
 jobs:
   build:
     runs-on: ubuntu-22.04
     steps:
-    - name: Checkout
-      uses: actions/checkout@v4
-      
+    - name: Set GApps
+      id: gapps
+      run: |
+        if [ "${{ github.event.inputs.include_gapps }}" == "yes" ]; then
+          echo "variant=core" >> $GITHUB_OUTPUT
+        else
+          echo "variant=none" >> $GITHUB_OUTPUT
+        fi
+        
     - name: Build GSI
       uses: ponces/treble_build_aosp@android-15.0
       with:
         android_version: ${{ github.event.inputs.android_version }}
         gsi_variant: ${{ github.event.inputs.gsi_variant }}
+        gapps_variant: ${{ steps.gapps.outputs.variant }}
         
     - name: Upload GSI
       uses: actions/upload-artifact@v4
       with:
-        name: Varius-OS-15-${{ github.run_number }}
+        name: Varius-OS-15-${{ steps.gapps.outputs.variant }}-${{ github.run_number }}
         path: release/
